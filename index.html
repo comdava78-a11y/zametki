@@ -88,6 +88,9 @@
             font-size: 14px;
             font-weight: 600;
             flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .action-btn-add {
@@ -714,11 +717,10 @@
 <body>
 
 <div class="app-container">
-    <!-- Sidebar Navigation -->
     <aside class="sidebar">
         <div class="user-profile" onclick="openCommandMenu()">
-            <div class="avatar">D</div>
-            <div class="user-name">David Rusinov</div>
+            <div class="avatar" id="user-avatar">П</div>
+            <div class="user-name" id="user-name-display">Пользователь</div>
             <span style="color:#aaa; font-size:12px;">Ctrl+K</span>
         </div>
 
@@ -776,7 +778,6 @@
         <ul class="custom-list" id="sidebar-filters-list"></ul>
     </aside>
 
-    <!-- Main Content Panel -->
     <main class="main-content">
         <div class="content-container">
             <header>
@@ -786,15 +787,12 @@
 
             <div class="upcoming-strip" id="upcoming-calendar-strip" style="display:none;"></div>
 
-            <!-- Main Tasks & Notes Container -->
             <div class="tasks-container" id="tasks-list-root"></div>
 
-            <!-- Inline Add Task Trigger -->
             <div class="inline-task-trigger" id="inline-editor-trigger" onclick="showInlineTaskEditor()">
                 <span>+</span> Добавить задачу
             </div>
 
-            <!-- Task Editor Component -->
             <div class="task-editor" id="shared-task-editor">
                 <div class="editor-inputs">
                     <input type="text" id="editor-task-title" class="editor-title" placeholder="Название задачи">
@@ -828,7 +826,6 @@
     </main>
 </div>
 
-<!-- POPUPS & DROPDOWNS -->
 <div id="date-popup" class="popup-menu">
     <div class="popup-item" onclick="setEditorDate('today', 'Сегодня')">☀️ Сегодня</div>
     <div class="popup-item" onclick="setEditorDate('tomorrow', 'Завтра')">🌅 Завтра</div>
@@ -855,10 +852,16 @@
     <div class="popup-item" onclick="promptAddLabelToEditor()">🏷️ Добавить метку</div>
 </div>
 
-<!-- GLOBAL MODAL OVERLAYS -->
 <div id="modal-overlay" class="modal-overlay" onclick="closeAllModals(event)">
-    <!-- Command Menu Modal -->
     <div id="command-modal" class="command-modal" style="display:none;">
+        <div class="command-section" style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            <div class="command-section-title">Настройка профиля</div>
+            <div class="command-row" style="cursor: default; display: flex; gap: 8px;" onclick="event.stopPropagation()">
+                <input type="text" id="profile-name-input" placeholder="Введите имя или никнейм..." onkeydown="if(event.key === 'Enter') updateProfileName()" style="width: 100%; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 14px; outline: none;">
+                <button class="btn btn-save" onclick="updateProfileName()" style="padding: 6px 14px; white-space: nowrap;">ОК</button>
+            </div>
+        </div>
+
         <div class="command-input-wrapper">
             <input type="text" id="command-search-input" placeholder="Поиск задач..." oninput="handleCommandSearch(this.value)">
         </div>
@@ -874,7 +877,6 @@
         </div>
     </div>
 
-    <!-- Project Dialog -->
     <div id="project-dialog" class="dialog-modal" style="display:none;" onclick="event.stopPropagation()">
         <div class="dialog-title" id="project-dialog-title">Создать проект</div>
         <input type="text" id="project-dialog-input" class="dialog-input" placeholder="Название проекта">
@@ -884,7 +886,6 @@
         </div>
     </div>
 
-    <!-- Notebook Notes Dialog (Add / Edit Note) -->
     <div id="note-dialog" class="dialog-modal" style="display:none; max-width: 500px;" onclick="event.stopPropagation()">
         <div class="dialog-title" id="note-dialog-title">Создать заметку</div>
         <input type="text" id="note-dialog-title-input" class="dialog-input" placeholder="Заголовок заметки">
@@ -895,7 +896,6 @@
         </div>
     </div>
 
-    <!-- Generic Dialog (Labels / Filters) -->
     <div id="generic-dialog" class="dialog-modal" style="display:none;" onclick="event.stopPropagation()">
         <div class="dialog-title" id="generic-dialog-title">Добавить элемент</div>
         <input type="text" id="generic-dialog-input" class="dialog-input" placeholder="Введите значение">
@@ -913,7 +913,8 @@
         projects: [],
         labels: [],
         filters: [],
-        notes: [], // Holds premium notepad items
+        notes: [], 
+        username: 'Пользователь', // Значение по умолчанию в состоянии
         currentView: 'today',
         editingTaskId: null,
         editingProjectId: null,
@@ -942,6 +943,7 @@
         if (!state.labels) state.labels = [];
         if (!state.filters) state.filters = [];
         if (!state.notes) state.notes = [];
+        if (!state.username) state.username = 'Пользователь';
         if (!state.currentView) state.currentView = 'today';
 
         window.addEventListener('keydown', function(e) {
@@ -959,9 +961,30 @@
     }
 
     function renderAll() {
+        renderProfile(); // Отрисовка профиля
         renderSidebar();
         renderMainView();
         updateCounts();
+    }
+
+    // Динамическое обновление имени и первой буквы аватара
+    function renderProfile() {
+        const name = state.username || 'Пользователь';
+        document.getElementById('user-name-display').innerText = name;
+        document.getElementById('user-avatar').innerText = name.trim().charAt(0).toUpperCase() || 'П';
+    }
+
+    // Обработчик сохранения имени
+    function updateProfileName() {
+        const nameInput = document.getElementById('profile-name-input').value.trim();
+        if (nameInput !== "") {
+            state.username = nameInput;
+            saveToStorage();
+            renderAll();
+            closeModal();
+        } else {
+            alert('Пожалуйста, введите корректное имя или никнейм.');
+        }
     }
 
     function updateCounts() {
@@ -1039,7 +1062,6 @@
         root.innerHTML = '';
         strip.style.display = 'none';
         
-        // Dynamic visibility logic for adding standard tasks
         if (['inbox', 'today', 'upcoming'].includes(state.currentView) || state.projects.some(p => p.id === state.currentView)) {
             taskTrigger.style.display = 'flex';
         } else {
@@ -1130,7 +1152,6 @@
         }
     }
 
-    /* PREMIUM NOTEBOOK COMPONENT RENDERING CODE (CRUD) */
     function renderNotebookView(container) {
         let html = `
             <button class="btn btn-save" style="margin-bottom: 20px;" onclick="openNoteDialog('add')">
@@ -1442,6 +1463,7 @@
         document.getElementById('command-modal').style.display = 'block';
         document.getElementById('command-search-input').value = '';
         document.getElementById('search-results-section').style.display = 'none';
+        document.getElementById('profile-name-input').value = state.username || 'Пользователь'; // Заполнение поля текущим именем
         document.getElementById('command-search-input').focus();
     }
 
