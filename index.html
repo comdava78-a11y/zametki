@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todoist Clone - Premium Task Manager & Notebook</title>
+    <style>
+        :root {
+            --todoist-red: #dc4c3e;
+            --todoist-orange: #f49c18;
+            --todoist-blue: #4073d6;
+            --todoist-grey: #808080;
+            --bg-sidebar: #fafafa;
+            --bg-main: #ffffff;
+            --text-main: #202020;
+            --text-muted: #555555;
+            --border-color: #f0f0f0;
+            --hover-color: #eee;
+            --hover-sidebar: #f3f3f3;
+            --priority-1: #de4c4a;
+            --priority-2: #f49c18;
+            --priority-3: #4073d6;
+            --priority-4: #808080;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            color: var(--text-main);
+            background-color: var(--bg-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* App Container Layout */
+        .app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 15px 12px;
+            user-select: none;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 12px;
+        }
+
+        .user-profile:hover {
+            background-color: var(--hover-sidebar);
+        }
+
+        .avatar {
+            width: 26px;
+            height: 26px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            flex-grow: 1;
+        }
+
+        .action-btn-add {
+            display: flex;
+            align-items: center;
+            color: var(--todoist-red);
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .action-btn-add:hover {
+            background-color: #fceceb;
+        }
+
+        .action-btn-add svg {
+            margin-right: 8px;
+            fill: var(--todoist-red);
+        }
+
+        .nav-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #333;
+            margin-bottom: 2px;
+            position: relative;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--hover-sidebar);
+        }
+
+        .nav-item.active {
+            font-weight: 600;
+            background-color: #eeeeee;
+        }
+
+        .nav-item svg {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-item .count {
+            position: absolute;
+            right: 8px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+            color: #777;
+            padding: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-header .add-icon {
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-header .add-icon:hover {
+            background-color: var(--hover-sidebar);
+            color: #333;
+        }
+
+        .project-list, .custom-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .project-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .project-item:hover {
+            background-color: var(--hover-sidebar);
+        }
+
+        .project-item .hash-icon {
+            margin-right: 10px;
+            color: #888;
+        }
+
+        .project-actions {
+            position: absolute;
+            right: 8px;
+            display: none;
+            gap: 4px;
+        }
+
+        .project-item:hover .project-actions {
+            display: flex;
+        }
+
+        .project-actions span {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .project-actions span:hover {
+            background-color: #ddd;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px 60px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .content-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .view-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .task-count-sub {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Tasks List */
+        .tasks-container {
+            margin-bottom: 20px;
+        }
+
+        .task-group-header {
+            font-size: 14px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 6px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #202020;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .task-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid var(--todoist-grey);
+            margin-right: 12px;
+            margin-top: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .task-checkbox.p1 { border-color: var(--priority-1); }
+        .task-checkbox.p2 { border-color: var(--priority-2); }
+        .task-checkbox.p3 { border-color: var(--priority-3); }
+        .task-checkbox.p4 { border-color: var(--priority-4); }
+
+        .task-checkbox.p1:hover { background-color: #fceceb; }
+        .task-checkbox.p2:hover { background-color: #fef5e8; }
+        .task-checkbox.p3:hover { background-color: #ecf1fc; }
+        .task-checkbox.p4:hover { background-color: #f3f3f3; }
+
+        .task-item.completed .task-checkbox {
+            background-color: #555 !important;
+            border-color: #555 !important;
+        }
+        .task-item.completed .task-checkbox::after {
+            content: "✓";
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .task-item.completed .task-details .task-title {
+            text-decoration: line-through;
+            color: #aaa;
+        }
+
+        .task-details {
+            flex-grow: 1;
+        }
+
+        .task-title {
+            font-size: 14px;
+            color: var(--text-main);
+            margin-bottom: 3px;
+            word-break: break-word;
+        }
+
+        .task-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+
+        .task-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .badge-date {
+            color: #058527;
+            background-color: #f1f9f3;
+        }
+        .badge-project {
+            color: #666;
+            background-color: #f3f3f3;
+        }
+
+        .task-item-actions {
+            position: absolute;
+            right: 0;
+            top: 10px;
+            display: none;
+            gap: 5px;
+        }
+
+        .task-item:hover .task-item-actions {
+            display: flex;
+        }
+
+        .task-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 3px;
+            color: #666;
+        }
+
+        .task-btn:hover {
+            background-color: var(--hover-color);
+            color: #000;
+        }
+
+        /* Inline Task Creator Form */
+        .inline-task-trigger {
+            display: flex;
+            align-items: center;
+            color: #777;
+            font-size: 14px;
+            padding: 10px 0;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .inline-task-trigger:hover {
+            color: var(--todoist-red);
+        }
+
+        .inline-task-trigger span {
+            margin-right: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .task-editor {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            background-color: #fff;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+
+        .editor-inputs input[type="text"] {
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 4px 0;
+        }
+
+        .editor-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .editor-desc {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .editor-meta-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .meta-dropdown-trigger {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 4px 8px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #444;
+        }
+
+        .meta-dropdown-trigger:hover {
+            background-color: #fafafa;
+        }
+
+        .editor-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .editor-project-select {
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
+            outline: none;
+        }
+
+        .editor-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-cancel {
+            background-color: #f5f5f5;
+            color: #444;
+        }
+
+        .btn-cancel:hover {
+            background-color: #e5e5e5;
+        }
+
+        .btn-save {
+            background-color: var(--todoist-red);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background-color: #b53f33;
+        }
+
+        /* Dropdown Popup Menus */
+        .popup-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+            padding: 6px 0;
+            min-width: 160px;
+        }
+
+        .popup-item {
+            padding: 8px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .popup-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Custom Views Controls */
+        .upcoming-strip {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+
+        .strip-day {
+            flex: 1;
+            min-width: 50px;
+            padding: 8px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .strip-day:hover {
+            background-color: var(--hover-sidebar);
+        }
+
+        .strip-day.active {
+            background-color: #fceceb;
+            color: var(--todoist-red);
+            font-weight: bold;
+        }
+
+        .strip-day-num {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            width: 100%;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #202020;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            max-width: 320px;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        /* Modals & Command Menu */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 100px;
+            z-index: 2000;
+        }
+
+        .command-modal {
+            background: white;
+            width: 100%;
+            max-width: 550px;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .command-input-wrapper {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .command-input-wrapper input {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .command-section {
+            padding: 10px 0;
+        }
+
+        .command-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #888;
+            padding: 6px 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .command-row {
+            padding: 10px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .command-row:hover {
+            background-color: #f5f5f5;
+        }
+
+        .command-shortcut {
+            font-size: 12px;
+            color: #aaa;
+            background: #fafafa;
+            padding: 2px 6px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+
+        /* Dialog Modal */
+        .dialog-modal {
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .dialog-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .dialog-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+
+        .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div class="user-profile" onclick="openCommandMenu()">
+            <div class="avatar">D</div>
+            <div class="user-name">David Rusinov</div>
+            <span style="color:#aaa; font-size:12px;">Ctrl+K</span>
+        </div>
+
+        <div class="action-btn-add" onclick="showInlineTaskEditor()">
+            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Добавить задачу
+        </div>
+
+        <ul class="nav-list">
+            <li class="nav-item" id="nav-inbox" onclick="switchView('inbox')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M22 12a10 10 0 0 1-20 0V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8z"></path></svg>
+                Входящие
+                <span class="count" id="count-inbox">0</span>
+            </li>
+            <li class="nav-item" id="nav-today" onclick="switchView('today')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Сегодня
+                <span class="count" id="count-today">0</span>
+            </li>
+            <li class="nav-item" id="nav-upcoming" onclick="switchView('upcoming')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                Предстоящее
+            </li>
+            <li class="nav-item" id="nav-notebook" onclick="switchView('notebook')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                📝 Блокнот
+                <span class="count" id="count-notes">0</span>
+            </li>
+            <li class="nav-item" id="nav-filters-labels" onclick="switchView('filters-labels')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                Фильтры и метки
+            </li>
+            <li class="nav-item" id="nav-reports" onclick="switchView('reports')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                Отчеты
+            </li>
+        </ul>
+
+        <div class="section-header">
+            <span>Мои проекты</span>
+            <span class="add-icon" onclick="openProjectDialog('add')">+</span>
+        </div>
+        <ul class="project-list" id="sidebar-projects-list"></ul>
+
+        <div class="section-header">
+            <span>Метки</span>
+            <span class="add-icon" onclick="openLabelDialog()">+</span>
+        </div>
+        <ul class="custom-list" id="sidebar-labels-list"></ul>
+
+        <div class="section-header">
+            <span>Фильтры</span>
+            <span class="add-icon" onclick="openFilterDialog()">+</span>
+        </div>
+        <ul class="custom-list" id="sidebar-filters-list"></ul>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="main-content">
+        <div class="content-container">
+            <header>
+                <h2 class="view-title" id="main-view-title">Сегодня</h2>
+                <div class="task-count-sub" id="main-view-subtitle"></div>
+            </header>
+
+            <div class="upcoming-strip" id="upcoming-calendar-strip" style="display:none;"></div>
+
+            <!-- Main Tasks & Notes Container -->
+            <div class="tasks-container" id="tasks-list-root"></div>
+
+            <!-- Inline Add Task Trigger -->
+            <div class="inline-task-trigger" id="inline-editor-trigger" onclick="showInlineTaskEditor()">
+                <span>+</span> Добавить задачу
+            </div>
+
+            <!-- Task Editor Component -->
+            <div class="task-editor" id="shared-task-editor">
+                <div class="editor-inputs">
+                    <input type="text" id="editor-task-title" class="editor-title" placeholder="Название задачи">
+                    <input type="text" id="editor-task-desc" class="editor-desc" placeholder="Описание">
+                </div>
+                <div class="editor-meta-row">
+                    <button class="meta-dropdown-trigger" id="editor-date-btn" onclick="togglePopup(event, 'date-popup')">
+                        📅 <span id="val-date">Сегодня</span>
+                    </button>
+                    <button class="meta-dropdown-trigger" id="editor-priority-btn" onclick="togglePopup(event, 'priority-popup')">
+                        🏳️ <span id="val-priority">Приоритет 4</span>
+                    </button>
+                    <button class="meta-dropdown-trigger" id="editor-reminder-btn" onclick="togglePopup(event, 'reminder-popup')">
+                        ⏰ Напоминания
+                    </button>
+                    <button class="meta-dropdown-trigger" onclick="togglePopup(event, 'more-popup')">
+                        ••• Дополнительно
+                    </button>
+                </div>
+                <div class="editor-footer">
+                    <select class="editor-project-select" id="editor-project-dropdown">
+                        <option value="inbox">Входящие</option>
+                    </select>
+                    <div class="editor-buttons">
+                        <button class="btn btn-cancel" onclick="hideInlineTaskEditor()">Отмена</button>
+                        <button class="btn btn-save" onclick="saveTaskFromEditor()">Добавить задачу</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- POPUPS & DROPDOWNS -->
+<div id="date-popup" class="popup-menu">
+    <div class="popup-item" onclick="setEditorDate('today', 'Сегодня')">☀️ Сегодня</div>
+    <div class="popup-item" onclick="setEditorDate('tomorrow', 'Завтра')">🌅 Завтра</div>
+    <div class="popup-item" onclick="setEditorDate('no-date', 'Без срока')">🚫 Без срока</div>
+    <hr style="border:none; border-top:1px solid #eee; margin:4px 0;">
+    <div style="padding: 6px 12px;"><input type="date" id="custom-date-picker" onchange="setCustomEditorDate(this.value)" style="font-size:12px; width:100%;"></div>
+</div>
+
+<div id="priority-popup" class="popup-menu">
+    <div class="popup-item" onclick="setEditorPriority(1)" style="color:var(--priority-1)">🚩 Приоритет 1</div>
+    <div class="popup-item" onclick="setEditorPriority(2)" style="color:var(--priority-2)">🚩 Приоритет 2</div>
+    <div class="popup-item" onclick="setEditorPriority(3)" style="color:var(--priority-3)">🚩 Приоритет 3</div>
+    <div class="popup-item" onclick="setEditorPriority(4)" style="color:var(--priority-4)">🏳️ Приоритет 4</div>
+</div>
+
+<div id="reminder-popup" class="popup-menu" style="padding:10px; width:200px;">
+    <div style="font-size:12px; font-weight:bold; margin-bottom:6px;">Напоминание</div>
+    <div class="popup-item" onclick="setReminder('0')">В момент задачи</div>
+    <div class="popup-item" onclick="setReminder('15')">За 15 минут</div>
+    <div class="popup-item" onclick="setReminder('60')">За 1 час</div>
+</div>
+
+<div id="more-popup" class="popup-menu">
+    <div class="popup-item" onclick="promptAddLabelToEditor()">🏷️ Добавить метку</div>
+</div>
+
+<!-- GLOBAL MODAL OVERLAYS -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeAllModals(event)">
+    <!-- Command Menu Modal -->
+    <div id="command-modal" class="command-modal" style="display:none;">
+        <div class="command-input-wrapper">
+            <input type="text" id="command-search-input" placeholder="Поиск задач..." oninput="handleCommandSearch(this.value)">
+        </div>
+        <div class="command-section">
+            <div class="command-section-title">Переход</div>
+            <div class="command-row" onclick="switchView('today'); closeModal();">📅 Сегодня</div>
+            <div class="command-row" onclick="switchView('inbox'); closeModal();">📥 Входящие</div>
+            <div class="command-row" onclick="switchView('notebook'); closeModal();">📝 Блокнот</div>
+        </div>
+        <div class="command-section" id="search-results-section" style="display:none;">
+            <div class="command-section-title">Результаты поиска</div>
+            <div id="search-results-target"></div>
+        </div>
+    </div>
+
+    <!-- Project Dialog -->
+    <div id="project-dialog" class="dialog-modal" style="display:none;" onclick="event.stopPropagation()">
+        <div class="dialog-title" id="project-dialog-title">Создать проект</div>
+        <input type="text" id="project-dialog-input" class="dialog-input" placeholder="Название проекта">
+        <div class="dialog-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+            <button class="btn btn-save" onclick="saveProjectFromDialog()">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Notebook Notes Dialog (Add / Edit Note) -->
+    <div id="note-dialog" class="dialog-modal" style="display:none; max-width: 500px;" onclick="event.stopPropagation()">
+        <div class="dialog-title" id="note-dialog-title">Создать заметку</div>
+        <input type="text" id="note-dialog-title-input" class="dialog-input" placeholder="Заголовок заметки">
+        <textarea id="note-dialog-content-input" class="dialog-input" placeholder="Текст заметки..." style="height: 150px; resize: vertical; font-family: inherit; margin-bottom:15px;"></textarea>
+        <div class="dialog-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+            <button class="btn btn-save" onclick="saveNoteFromDialog()">Сохранить</button>
+        </div>
+    </div>
+
+    <!-- Generic Dialog (Labels / Filters) -->
+    <div id="generic-dialog" class="dialog-modal" style="display:none;" onclick="event.stopPropagation()">
+        <div class="dialog-title" id="generic-dialog-title">Добавить элемент</div>
+        <input type="text" id="generic-dialog-input" class="dialog-input" placeholder="Введите значение">
+        <input type="text" id="generic-dialog-extra" class="dialog-input" placeholder="Условие (необязательно)" style="display:none;">
+        <div class="dialog-footer">
+            <button class="btn btn-cancel" onclick="closeModal()">Отмена</button>
+            <button class="btn btn-save" onclick="saveGenericFromDialog()">Добавить</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let state = {
+        tasks: [],
+        projects: [],
+        labels: [],
+        filters: [],
+        notes: [], // Holds premium notepad items
+        currentView: 'today',
+        editingTaskId: null,
+        editingProjectId: null,
+        editingGenericType: null,
+        editingNoteId: null,
+        
+        editorDate: 'today',
+        editorDateStr: 'Сегодня',
+        editorPriority: 4,
+        editorReminders: [],
+        editorLabels: []
+    };
+
+    function init() {
+        const stored = localStorage.getItem('todoist_premium_data');
+        if (stored) {
+            try {
+                state = JSON.parse(stored);
+            } catch (e) {
+                console.error("Ошибка загрузки данных", e);
+            }
+        }
+        
+        if (!state.tasks) state.tasks = [];
+        if (!state.projects) state.projects = [];
+        if (!state.labels) state.labels = [];
+        if (!state.filters) state.filters = [];
+        if (!state.notes) state.notes = [];
+        if (!state.currentView) state.currentView = 'today';
+
+        window.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openCommandMenu();
+            }
+        });
+
+        renderAll();
+    }
+
+    function saveToStorage() {
+        localStorage.setItem('todoist_premium_data', JSON.stringify(state));
+    }
+
+    function renderAll() {
+        renderSidebar();
+        renderMainView();
+        updateCounts();
+    }
+
+    function updateCounts() {
+        document.getElementById('count-inbox').innerText = state.tasks.filter(t => !t.completed && t.projectId === 'inbox').length || '';
+        document.getElementById('count-today').innerText = state.tasks.filter(t => !t.completed && isToday(t.dueDate)).length || '';
+        document.getElementById('count-notes').innerText = state.notes.length || '';
+    }
+
+    function renderSidebar() {
+        // Projects list
+        const projectListRoot = document.getElementById('sidebar-projects-list');
+        projectListRoot.innerHTML = '';
+        state.projects.forEach(p => {
+            const li = document.createElement('li');
+            li.className = `project-item ${state.currentView === p.id ? 'active' : ''}`;
+            li.onclick = () => switchView(p.id);
+            li.innerHTML = `
+                <span class="hash-icon">#</span>
+                <span style="flex-grow:1; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${escapeHtml(p.name)}</span>
+                <span class="count">${state.tasks.filter(t => !t.completed && t.projectId === p.id).length || ''}</span>
+                <div class="project-actions" onclick="event.stopPropagation()">
+                    <span onclick="openProjectDialog('edit', '${p.id}')">✏️</span>
+                    <span onclick="deleteProject('${p.id}')">🗑️</span>
+                </div>
+            `;
+            projectListRoot.appendChild(li);
+        });
+
+        // Labels
+        const labelListRoot = document.getElementById('sidebar-labels-list');
+        labelListRoot.innerHTML = '';
+        state.labels.forEach(l => {
+            const li = document.createElement('li');
+            li.className = `project-item ${state.currentView === 'label-' + l.id ? 'active' : ''}`;
+            li.onclick = () => switchView('label-' + l.id);
+            li.innerHTML = `
+                <span class="hash-icon">🏷️</span>
+                <span style="flex-grow:1;">${escapeHtml(l.name)}</span>
+                <div class="project-actions" onclick="event.stopPropagation()">
+                    <span onclick="deleteGeneric('label', '${l.id}')">🗑️</span>
+                </div>
+            `;
+            labelListRoot.appendChild(li);
+        });
+
+        // Filters
+        const filterListRoot = document.getElementById('sidebar-filters-list');
+        filterListRoot.innerHTML = '';
+        state.filters.forEach(f => {
+            const li = document.createElement('li');
+            li.className = `project-item ${state.currentView === 'filter-' + f.id ? 'active' : ''}`;
+            li.onclick = () => switchView('filter-' + f.id);
+            li.innerHTML = `
+                <span class="hash-icon">🧪</span>
+                <span style="flex-grow:1;">${escapeHtml(f.name)}</span>
+                <div class="project-actions" onclick="event.stopPropagation()">
+                    <span onclick="deleteGeneric('filter', '${f.id}')">🗑️</span>
+                </div>
+            `;
+            filterListRoot.appendChild(li);
+        });
+
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const activeNavEl = document.getElementById(`nav-${state.currentView}`);
+        if (activeNavEl) activeNavEl.classList.add('active');
+    }
+
+    function renderMainView() {
+        const titleEl = document.getElementById('main-view-title');
+        const subEl = document.getElementById('main-view-subtitle');
+        const root = document.getElementById('tasks-list-root');
+        const strip = document.getElementById('upcoming-calendar-strip');
+        const taskTrigger = document.getElementById('inline-editor-trigger');
+        
+        root.innerHTML = '';
+        strip.style.display = 'none';
+        
+        // Dynamic visibility logic for adding standard tasks
+        if (['inbox', 'today', 'upcoming'].includes(state.currentView) || state.projects.some(p => p.id === state.currentView)) {
+            taskTrigger.style.display = 'flex';
+        } else {
+            taskTrigger.style.display = 'none';
+        }
+
+        let filteredTasks = [];
+        let viewTitle = '';
+        let viewSubtitle = '';
+
+        if (state.currentView === 'inbox') {
+            viewTitle = 'Входящие';
+            filteredTasks = state.tasks.filter(t => t.projectId === 'inbox');
+            viewSubtitle = `${filteredTasks.filter(t => !t.completed).length} задач`;
+            renderStandardTaskList(root, filteredTasks);
+        } 
+        else if (state.currentView === 'today') {
+            viewTitle = 'Сегодня';
+            viewSubtitle = `📅 ${getFormattedDate(new Date())}`;
+            filteredTasks = state.tasks.filter(t => isToday(t.dueDate));
+            renderStandardTaskList(root, filteredTasks);
+        } 
+        else if (state.currentView === 'upcoming') {
+            viewTitle = 'Предстоящее';
+            strip.style.display = 'flex';
+            renderUpcomingStrip();
+            renderUpcomingTasksList(root);
+        } 
+        else if (state.currentView === 'notebook') {
+            viewTitle = 'Блокнот';
+            viewSubtitle = `${state.notes.length} заметок`;
+            renderNotebookView(root);
+        }
+        else if (state.currentView === 'filters-labels') {
+            viewTitle = 'Фильтры и метки';
+            renderFiltersLabelsManagement(root);
+        } 
+        else if (state.currentView === 'reports') {
+            viewTitle = 'Отчеты';
+            renderReportsView(root);
+        } 
+        else if (state.currentView.startsWith('label-')) {
+            const labelId = state.currentView.replace('label-', '');
+            const labelObj = state.labels.find(l => l.id === labelId);
+            viewTitle = labelObj ? `Метка: ${labelObj.name}` : 'Метка';
+            filteredTasks = state.tasks.filter(t => t.labels && t.labels.includes(labelId));
+            renderStandardTaskList(root, filteredTasks);
+        } 
+        else if (state.currentView.startsWith('filter-')) {
+            const filterId = state.currentView.replace('filter-', '');
+            const filterObj = state.filters.find(f => f.id === filterId);
+            viewTitle = filterObj ? `Фильтр: ${filterObj.name}` : 'Фильтр';
+            filteredTasks = state.tasks; 
+            renderStandardTaskList(root, filteredTasks);
+        } 
+        else {
+            const project = state.projects.find(p => p.id === state.currentView);
+            viewTitle = project ? project.name : 'Проект';
+            filteredTasks = state.tasks.filter(t => t.projectId === state.currentView);
+            viewSubtitle = `${filteredTasks.filter(t => !t.completed).length} задач`;
+            renderStandardTaskList(root, filteredTasks);
+        }
+
+        titleEl.innerText = viewTitle;
+        subEl.innerHTML = viewSubtitle || '';
+    }
+
+    function renderStandardTaskList(container, tasks) {
+        if (tasks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <h3>Все задачи выполнены!</h3>
+                    <p>Здесь чисто. Добавьте новую задачу, чтобы спланировать свои дела.</p>
+                </div>`;
+            return;
+        }
+
+        tasks.filter(t => !t.completed).forEach(task => container.appendChild(createTaskDOMElement(task)));
+        
+        const completed = tasks.filter(t => t.completed);
+        if (completed.length > 0) {
+            const header = document.createElement('div');
+            header.className = 'task-group-header';
+            header.innerText = 'Выполненные задачи';
+            container.appendChild(header);
+            completed.forEach(task => container.appendChild(createTaskDOMElement(task)));
+        }
+    }
+
+    /* PREMIUM NOTEBOOK COMPONENT RENDERING CODE (CRUD) */
+    function renderNotebookView(container) {
+        let html = `
+            <button class="btn btn-save" style="margin-bottom: 20px;" onclick="openNoteDialog('add')">
+                + Создать заметку
+            </button>
+        `;
+        
+        if (state.notes.length === 0) {
+            html += `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    <h3>Блокнот пуст</h3>
+                    <p>Здесь пока нет записей. Создайте заметку, чтобы сохранить важные мысли или идеи.</p>
+                </div>`;
+            container.innerHTML = html;
+            return;
+        }
+
+        html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; width: 100%;">`;
+        state.notes.forEach(note => {
+            html += `
+                <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; background: #fff; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;">
+                    <div>
+                        <h4 style="margin-bottom: 6px; font-size: 15px; font-weight: 600; color:#111; word-break: break-word;">${escapeHtml(note.title || 'Без названия')}</h4>
+                        <p style="font-size: 13px; color: var(--text-muted); white-space: pre-wrap; word-break: break-word; line-height:1.4; overflow: hidden; text-overflow: ellipsis; max-height: 140px;">${escapeHtml(note.content || '')}</p>
+                    </div>
+                    <div style="margin-top: 14px; border-top: 1px solid #f9f9f9; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; color: #aaa;">${note.createdAt || ''}</span>
+                        <div style="display: flex; gap: 4px;">
+                            <button class="task-btn" onclick="openNoteDialog('edit', '${note.id}')">✏️</button>
+                            <button class="task-btn" onclick="deleteNote('${note.id}')">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function openNoteDialog(mode, id = null) {
+        showGlobalOverlay();
+        document.getElementById('note-dialog').style.display = 'block';
+        const titleIn = document.getElementById('note-dialog-title-input');
+        const contentIn = document.getElementById('note-dialog-content-input');
+        
+        if (mode === 'edit' && id) {
+            state.editingNoteId = id;
+            document.getElementById('note-dialog-title').innerText = 'Редактировать заметку';
+            const note = state.notes.find(n => n.id === id);
+            titleIn.value = note ? note.title : '';
+            contentIn.value = note ? note.content : '';
+        } else {
+            state.editingNoteId = null;
+            document.getElementById('note-dialog-title').innerText = 'Создать заметку';
+            titleIn.value = '';
+            contentIn.value = '';
+        }
+        titleIn.focus();
+    }
+
+    function saveNoteFromDialog() {
+        const title = document.getElementById('note-dialog-title-input').value.trim();
+        const content = document.getElementById('note-dialog-content-input').value.trim();
+        
+        if (!title && !content) {
+            alert('Заметка не может быть полностью пустой.');
+            return;
+        }
+
+        const dateString = new Date().toLocaleDateString('ru', { day: 'numeric', month: 'short' });
+
+        if (state.editingNoteId) {
+            const note = state.notes.find(n => n.id === state.editingNoteId);
+            if (note) {
+                note.title = title;
+                note.content = content;
+            }
+        } else {
+            state.notes.push({
+                id: generateUUID(),
+                title: title,
+                content: content,
+                createdAt: dateString
+            });
+        }
+        saveToStorage();
+        closeModal();
+        renderAll();
+    }
+
+    function deleteNote(id) {
+        if (confirm('Вы уверены, что хотите удалить эту заметку?')) {
+            state.notes = state.notes.filter(n => n.id !== id);
+            saveToStorage();
+            renderAll();
+        }
+    }
+
+    function renderUpcomingStrip() {
+        const strip = document.getElementById('upcoming-calendar-strip');
+        strip.innerHTML = '';
+        const today = new Date();
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(today.getDate() + i);
+            const dayDiv = document.createElement('div');
+            dayDiv.className = `strip-day ${i === 0 ? 'active' : ''}`;
+            dayDiv.innerHTML = `<div>${d.toLocaleString('ru', { weekday: 'short' })}</div><div class="strip-day-num">${d.getDate()}</div>`;
+            strip.appendChild(dayDiv);
+        }
+    }
+
+    function renderUpcomingTasksList(container) {
+        const groups = {};
+        state.tasks.forEach(t => {
+            if (t.completed) return;
+            const dStr = t.dueDate || 'Без срока';
+            if (!groups[dStr]) groups[dStr] = [];
+            groups[dStr].push(t);
+        });
+
+        const keys = Object.keys(groups).sort();
+        if (keys.length === 0) {
+            container.innerHTML = `<div class="empty-state"><h3>Впереди нет запланированных задач</h3></div>`;
+            return;
+        }
+
+        keys.forEach(k => {
+            const header = document.createElement('div');
+            header.className = 'task-group-header';
+            header.innerText = k === 'today' ? 'Сегодня' : (k === 'no-date' ? 'Без срока' : k);
+            container.appendChild(header);
+            groups[k].forEach(task => container.appendChild(createTaskDOMElement(task)));
+        });
+    }
+
+    function renderFiltersLabelsManagement(container) {
+        container.innerHTML = `
+            <div style="margin-bottom:24px;">
+                <div class="task-group-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Мои фильтры</span>
+                    <button class="btn btn-save" style="padding:2px 8px; font-size:11px;" onclick="openFilterDialog()">+ Добавить</button>
+                </div>
+                <div id="manage-filters-list" style="margin-top:8px; display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+            <div>
+                <div class="task-group-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Метки</span>
+                    <button class="btn btn-save" style="padding:2px 8px; font-size:11px;" onclick="openLabelDialog()">+ Добавить</button>
+                </div>
+                <div id="manage-labels-list" style="margin-top:8px; display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+        `;
+        const fList = document.getElementById('manage-filters-list');
+        if(state.filters.length === 0) fList.innerHTML = '<p style="font-size:13px; color:#888;">Нет фильтров</p>';
+        state.filters.forEach(f => {
+            fList.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:13px;">
+                <span>🧪 <b>${escapeHtml(f.name)}</b> (${escapeHtml(f.query)})</span>
+                <button class="task-btn" onclick="deleteGeneric('filter', '${f.id}')">🗑️</button>
+            </div>`;
+        });
+
+        const lList = document.getElementById('manage-labels-list');
+        if(state.labels.length === 0) lList.innerHTML = '<p style="font-size:13px; color:#888;">Нет меток</p>';
+        state.labels.forEach(l => {
+            lList.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding:8px; background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:13px;">
+                <span>🏷️ <b>${escapeHtml(l.name)}</b></span>
+                <button class="task-btn" onclick="deleteGeneric('label', '${l.id}')">🗑️</button>
+            </div>`;
+        });
+    }
+
+    function renderReportsView(container) {
+        container.innerHTML = `<div class="empty-state"><h3>Нет активности</h3><p>Все графики и отчеты выполненных задач будут отображаться здесь.</p></div>`;
+    }
+
+    function createTaskDOMElement(task) {
+        const item = document.createElement('div');
+        item.className = `task-item ${task.completed ? 'completed' : ''}`;
+        let badgesHtml = '';
+        if (task.dueDate && task.dueDate !== 'no-date') {
+            badgesHtml += `<span class="badge badge-date">📅 ${task.dueDate === 'today' ? 'Сегодня' : task.dueDate}</span>`;
+        }
+        let projName = task.projectId === 'inbox' ? 'Входящие' : (state.projects.find(p => p.id === task.projectId)?.name || 'Проект');
+        badgesHtml += `<span class="badge badge-project"># ${escapeHtml(projName)}</span>`;
+
+        item.innerHTML = `
+            <div class="task-checkbox p${task.priority || 4}" onclick="toggleTaskCompletion('${task.id}')"></div>
+            <div class="task-details">
+                <div class="task-title">${escapeHtml(task.title)}</div>
+                <div class="task-desc">${escapeHtml(task.description || '')}</div>
+                <div class="task-badges">${badgesHtml}</div>
+            </div>
+            <div class="task-item-actions">
+                <button class="task-btn" onclick="editTask('${task.id}')">✏️</button>
+                <button class="task-btn" onclick="deleteTask('${task.id}')">🗑️</button>
+            </div>
+        `;
+        return item;
+    }
+
+    function switchView(viewId) {
+        state.currentView = viewId;
+        hideInlineTaskEditor();
+        renderAll();
+    }
+
+    function toggleTaskCompletion(id) {
+        const task = state.tasks.find(t => t.id === id);
+        if (task) { task.completed = !task.completed; saveToStorage(); renderAll(); }
+    }
+
+    function deleteTask(id) {
+        state.tasks = state.tasks.filter(t => t.id !== id); saveToStorage(); renderAll();
+    }
+
+    function editTask(id) {
+        const task = state.tasks.find(t => t.id === id);
+        if (!task) return;
+        state.editingTaskId = id;
+        showInlineTaskEditor();
+        document.getElementById('editor-task-title').value = task.title;
+        document.getElementById('editor-task-desc').value = task.description || '';
+        state.editorDate = task.dueDate || 'today';
+        state.editorPriority = task.priority || 4;
+        document.getElementById('editor-project-dropdown').value = task.projectId || 'inbox';
+        updateEditorBadgesDisplay();
+    }
+
+    function showInlineTaskEditor() {
+        document.getElementById('inline-editor-trigger').style.display = 'none';
+        document.getElementById('shared-task-editor').style.display = 'flex';
+        const ddown = document.getElementById('editor-project-dropdown');
+        ddown.innerHTML = '<option value="inbox">Входящие</option>';
+        state.projects.forEach(p => ddown.innerHTML += `<option value="${p.id}">${escapeHtml(p.name)}</option>`);
+
+        if (!state.editingTaskId) {
+            document.getElementById('editor-task-title').value = '';
+            document.getElementById('editor-task-desc').value = '';
+            state.editorDate = 'today';
+            state.editorDateStr = 'Сегодня';
+            state.editorPriority = 4;
+            ddown.value = state.projects.some(p => p.id === state.currentView) ? state.currentView : 'inbox';
+        }
+        updateEditorBadgesDisplay();
+        document.getElementById('editor-task-title').focus();
+    }
+
+    function hideInlineTaskEditor() {
+        document.getElementById('shared-task-editor').style.display = 'none';
+        if (['inbox', 'today', 'upcoming'].includes(state.currentView) || state.projects.some(p => p.id === state.currentView)) {
+            document.getElementById('inline-editor-trigger').style.display = 'flex';
+        }
+        state.editingTaskId = null;
+    }
+
+    function updateEditorBadgesDisplay() {
+        document.getElementById('val-date').innerText = state.editorDateStr;
+        document.getElementById('val-priority').innerText = `Приоритет ${state.editorPriority}`;
+    }
+
+    function saveTaskFromEditor() {
+        const title = document.getElementById('editor-task-title').value.trim();
+        const desc = document.getElementById('editor-task-desc').value.trim();
+        const proj = document.getElementById('editor-project-dropdown').value;
+        if (!title) return alert('Введите название задачи');
+
+        if (state.editingTaskId) {
+            const task = state.tasks.find(t => t.id === state.editingTaskId);
+            if (task) {
+                task.title = title; task.description = desc; task.projectId = proj;
+                task.dueDate = state.editorDate; task.priority = state.editorPriority;
+            }
+        } else {
+            state.tasks.push({
+                id: generateUUID(), title: title, description: desc, projectId: proj,
+                dueDate: state.editorDate, priority: state.editorPriority, completed: false,
+                reminders: [], labels: []
+            });
+        }
+        saveToStorage(); hideInlineTaskEditor(); renderAll();
+    }
+
+    function togglePopup(e, elementId) {
+        e.stopPropagation();
+        const pop = document.getElementById(elementId);
+        const isOpen = pop.style.display === 'block';
+        closeAllDropdowns();
+        if (!isOpen) {
+            pop.style.display = 'block';
+            const rect = e.currentTarget.getBoundingClientRect();
+            pop.style.top = `${rect.bottom + window.scrollY + 4}px`;
+            pop.style.left = `${rect.left + window.scrollX}px`;
+        }
+    }
+
+    function closeAllDropdowns() { document.querySelectorAll('.popup-menu').forEach(p => p.style.display = 'none'); }
+    window.onclick = function() { closeAllDropdowns(); };
+
+    function setEditorDate(val, label) { state.editorDate = val; state.editorDateStr = label; updateEditorBadgesDisplay(); }
+    function setCustomEditorDate(val) { if(val) { state.editorDate = val; state.editorDateStr = val; updateEditorBadgesDisplay(); } }
+    function setEditorPriority(val) { state.editorPriority = val; updateEditorBadgesDisplay(); }
+    function setReminder(val) { alert(`Напоминание установлено за ${val} минут.`); }
+    function promptAddLabelToEditor() { alert('Функция выбора меток активна.'); }
+
+    function openCommandMenu() {
+        showGlobalOverlay();
+        document.getElementById('command-modal').style.display = 'block';
+        document.getElementById('command-search-input').value = '';
+        document.getElementById('search-results-section').style.display = 'none';
+        document.getElementById('command-search-input').focus();
+    }
+
+    function handleCommandSearch(query) {
+        const sec = document.getElementById('search-results-section');
+        const target = document.getElementById('search-results-target');
+        if(!query.trim()) return sec.style.display = 'none';
+        const match = state.tasks.filter(t => t.title.toLowerCase().includes(query.toLowerCase()));
+        target.innerHTML = ''; sec.style.display = 'block';
+        if(match.length === 0) { target.innerHTML = '<div style="padding:8px 16px; font-size:13px; color:#888;">Ничего не найдено</div>'; return; }
+        match.forEach(t => {
+            const div = document.createElement('div'); div.className = 'command-row'; div.innerText = t.title;
+            div.onclick = () => { editTask(t.id); closeModal(); }; target.appendChild(div);
+        });
+    }
+
+    function openProjectDialog(mode, id = null) {
+        showGlobalOverlay();
+        document.getElementById('project-dialog').style.display = 'block';
+        const input = document.getElementById('project-dialog-input');
+        if (mode === 'edit' && id) {
+            state.editingProjectId = id;
+            input.value = state.projects.find(p => p.id === id)?.name || '';
+        } else {
+            state.editingProjectId = null; input.value = '';
+        }
+        input.focus();
+    }
+
+    function saveProjectFromDialog() {
+        const val = document.getElementById('project-dialog-input').value.trim();
+        if (!val) return;
+        if (state.editingProjectId) {
+            const p = state.projects.find(p => p.id === state.editingProjectId);
+            if (p) p.name = val;
+        } else {
+            state.projects.push({ id: generateUUID(), name: val });
+        }
+        saveToStorage(); closeModal(); renderAll();
+    }
+
+    function deleteProject(id) {
+        if(confirm('Удалить проект со всеми задачами?')) {
+            state.projects = state.projects.filter(p => p.id !== id);
+            state.tasks = state.tasks.filter(t => t.projectId !== id);
+            if (state.currentView === id) state.currentView = 'today';
+            saveToStorage(); renderAll();
+        }
+    }
+
+    function openLabelDialog() {
+        showGlobalOverlay(); state.editingGenericType = 'label';
+        document.getElementById('generic-dialog-title').innerText = 'Добавить метку';
+        document.getElementById('generic-dialog-input').value = '';
+        document.getElementById('generic-dialog-extra').style.display = 'none';
+        document.getElementById('generic-dialog').style.display = 'block';
+    }
+
+    function openFilterDialog() {
+        showGlobalOverlay(); state.editingGenericType = 'filter';
+        document.getElementById('generic-dialog-title').innerText = 'Добавить фильтр';
+        document.getElementById('generic-dialog-input').value = '';
+        document.getElementById('generic-dialog-extra').style.display = 'block';
+        document.getElementById('generic-dialog').style.display = 'block';
+    }
+
+    function saveGenericFromDialog() {
+        const inputVal = document.getElementById('generic-dialog-input').value.trim();
+        const extraVal = document.getElementById('generic-dialog-extra').value.trim();
+        if(!inputVal) return;
+        if(state.editingGenericType === 'label') state.labels.push({ id: generateUUID(), name: inputVal });
+        else state.filters.push({ id: generateUUID(), name: inputVal, query: extraVal || 'all' });
+        saveToStorage(); closeModal(); renderAll();
+    }
+
+    function deleteGeneric(type, id) {
+        if(type === 'label') state.labels = state.labels.filter(l => l.id !== id);
+        else state.filters = state.filters.filter(f => f.id !== id);
+        saveToStorage(); renderAll();
+    }
+
+    function showGlobalOverlay() { document.getElementById('modal-overlay').style.display = 'flex'; }
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.getElementById('command-modal').style.display = 'none';
+        document.getElementById('project-dialog').style.display = 'none';
+        document.getElementById('note-dialog').style.display = 'none';
+        document.getElementById('generic-dialog').style.display = 'none';
+    }
+    function closeAllModals(e) { if(e.target === document.getElementById('modal-overlay')) closeModal(); }
+    function generateUUID() { return 'uuid-' + Math.random().toString(36).substr(2, 9); }
+    function isToday(dateVal) {
+        if (!dateVal || dateVal === 'no-date') return false;
+        if (dateVal === 'today') return true;
+        const d = new Date(dateVal); const today = new Date();
+        return d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+    }
+    function getFormattedDate(date) { return date.toLocaleDateString('ru', { day: 'numeric', month: 'long' }); }
+    function escapeHtml(str) { return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : ''; }
+
+    init();
+</script>
+</body>
+</html>

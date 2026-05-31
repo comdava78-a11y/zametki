@@ -1,0 +1,426 @@
+:root {
+    --primary-color: #db4c3f;
+    --sidebar-bg: #fafafa;
+    --text-main: #202020;
+    --text-muted: #555555;
+    --border-color: #f0f0f0;
+    --hover-color: #eeeeee;
+    --p1-color: #de4c4a;
+    --p2-color: #f49c18;
+    --p3-color: #246fe0;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    color: var(--text-main);
+    background-color: #ffffff;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar Стили */
+.sidebar {
+    width: 280px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    background-color: #de4c4a;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.username {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.add-task-btn-fast {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 5px;
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.add-task-btn-fast:hover {
+    background-color: var(--hover-color);
+}
+
+.sidebar-nav .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-bottom: 2px;
+    gap: 12px;
+}
+
+.sidebar-nav .nav-item:hover, .nav-item.active {
+    background-color: var(--hover-color);
+}
+
+.sidebar-nav .nav-item .badge {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+}
+
+.sidebar-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #777;
+    margin: 25px 0 10px 10px;
+    text-transform: uppercase;
+}
+
+.projects-list {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    gap: 10px;
+}
+
+.project-item:hover {
+    background-color: var(--hover-color);
+}
+
+.sidebar-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.sidebar-footer button {
+    flex: 1;
+    background: none;
+    border: 1px solid #ccc;
+    padding: 5px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Главная область */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    height: 100vh;
+}
+
+.main-header {
+    padding: 15px 50px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 400px;
+    background: #f5f5f5;
+    padding: 8px 12px;
+    border-radius: 5px;
+}
+
+.search-bar input {
+    border: none;
+    background: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+}
+
+.content-view {
+    padding: 30px 50px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.content-view h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+/* Задачи */
+.task-list {
+    margin-bottom: 20px;
+}
+
+.task-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 12px;
+}
+
+.task-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    cursor: pointer;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.task-item.p1 .task-checkbox { border-color: var(--p1-color); }
+.task-item.p2 .task-checkbox { border-color: var(--p2-color); }
+.task-item.p3 .task-checkbox { border-color: var(--p3-color); }
+
+.task-checkbox:hover {
+    background-color: #f5f5f5;
+}
+
+.task-details {
+    flex-grow: 1;
+}
+
+.task-title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.task-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.task-date {
+    font-size: 11px;
+    color: var(--primary-color);
+    margin-top: 4px;
+    display: inline-block;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+    cursor: pointer;
+    color: #999;
+}
+
+.task-actions i:hover { color: #333; }
+
+/* Формы создания */
+.add-task-placeholder {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    padding: 8px 0;
+}
+
+.add-task-placeholder:hover { color: var(--primary-color); }
+
+.inline-add-task {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 10px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.inline-add-task input[type="text"], .inline-add-task textarea {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+}
+
+.inline-add-task textarea { resize: none; height: 60px; color: var(--text-muted); }
+
+.task-meta-inputs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.task-meta-inputs select, .task-meta-inputs input {
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 12px;
+    background: #fff;
+}
+
+.inline-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.inline-form-actions button {
+    padding: 6px 12px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.btn-cancel { background: #f5f5f5; color: #555; }
+.btn-submit { background: var(--primary-color); color: white; }
+
+/* Блокнот */
+.notes-layout {
+    display: flex;
+    gap: 20px;
+    height: 60vh;
+}
+
+.notes-sidebar {
+    width: 220px;
+    border-right: 1px solid var(--border-color);
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notes-list {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.note-item {
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.note-item:hover, .note-item.active { background: var(--hover-color); }
+.note-item h4 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note-item p { font-size: 11px; color: #777; }
+
+.note-editor {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#noteTitleView {
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    outline: none;
+    padding-bottom: 5px;
+}
+
+#noteContentView {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Календарь */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.calendar-day {
+    border: 1px solid var(--border-color);
+    min-height: 100px;
+    padding: 5px;
+    border-radius: 5px;
+    background: #fafafa;
+}
+
+.day-number { font-weight: bold; font-size: 12px; margin-bottom: 5px; }
+.calendar-task-tag {
+    font-size: 10px;
+    background: var(--p3-color);
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hidden { display: none !important; }
+
+/* Адаптивность для мобильных телефонов */
+@media (max-width: 768px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; order: 2; padding: 10px; }
+    .main-content { order: 1; height: calc(100vh - 150px); }
+    .content-view { padding: 15px; }
+    .main-header { padding: 10px 15px; }
+    .notes-layout { flex-direction: column; height: auto; }
+    .notes-sidebar { width: 100%; border: none; }
+}
